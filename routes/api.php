@@ -10,6 +10,8 @@ Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::apiResource('shops', \App\Http\Controllers\Api\ShopController::class);
 });
 
 Route::get('/user', function (Request $request) {

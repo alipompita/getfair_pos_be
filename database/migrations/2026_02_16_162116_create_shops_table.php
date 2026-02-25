@@ -17,7 +17,7 @@ return new class extends Migration
             $table->text('description');
             $table->foreignId('owned_by')->constrained('users', 'id')->onDelete('cascade');
             $table->enum('subscription_status', ['active', 'expired', 'suspended', 'canceled', 'revoked', 'pending'])->default('pending');
-            $table->dateTime('subscription_expiry');
+            $table->dateTime('subscription_expiry')->default(now()->addDays(3));
             $table->timestamps();
         });
     }
