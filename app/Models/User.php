@@ -49,4 +49,16 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function owned_shops()
+    {
+        return $this->hasMany(Shop::class, 'owned_by');
+    }
+
+    public function shops()
+    {
+        return $this->belongsToMany(Shop::class, 'shop_users')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
 }

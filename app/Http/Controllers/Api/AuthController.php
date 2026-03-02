@@ -18,7 +18,7 @@ class AuthController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
-            'phone' => 'required|string|max:20',
+            'phone' => 'required|string|max:20|unique:users.phone',
             'password' => 'required|string|min:8',
         ]);
 
@@ -54,31 +54,51 @@ class AuthController extends Controller
         }
     }
 
-    public function login(LoginRequest $request)
+    public function login(Request $request)
     {
-        $user = User::where('email', $request->email)->first();
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|string|email',
+            'password' => 'required|string',
+        ]);
 
-        if ($user || !Hash::check($request->password, $user->password)) {
+        if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid Credentials',
-            ], 401);
+                'errors' => $validator->errors(),
+            ], 422);
         }
 
-        if ($user->is_active) {
+        try {
+            $user = User::where('email', $request->email)->first();
+
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Invalid Credentials',
+                ], 401);
+            }
+
+            // if ($user->is_active) {
+            //     return response()->json([
+            //         'success' => false,
+            //         'message' => 'Account Disabled'
+            //     ], 403);
+            // }
+
+            $token = $user->createToken('api_token')->plainTextToken;
+
+            return response()->json([
+                'success' => true,
+                'user' => $user,
+                'token' => $token
+            ], 200);
+        } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Account Disabled'
-            ], 403);
+                'message' => 'Login failed',
+                'error' => $e->getMessage(),
+            ], 500);
         }
-
-        $token = $user->createToken('api_token')->plainTextToken;
-
-        return response()->json([
-            'success' => true,
-            'user' => $user,
-            'token' => $token
-        ], 200);
     }
 
     public function logout(Request $request)

@@ -33,6 +33,13 @@ class Shop extends Model
         return $this->subscription_status === 'active' && $this->subscription_expiry > now();
     }
 
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'shop_users')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
     public static function boot()
     {
         parent::boot();

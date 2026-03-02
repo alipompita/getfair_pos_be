@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Shop;
+use App\Models\User;
 
 class ShopController extends Controller
 {
@@ -14,7 +15,12 @@ class ShopController extends Controller
      */
     public function index()
     {
-        //
+        $shops = User::find(auth('sanctum')->id())->shops()->get();
+
+        return response()->json([
+            'success' => true,
+            'shops' => $shops,
+        ], 200);
     }
 
     /**
@@ -65,7 +71,19 @@ class ShopController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $shop = Shop::where('id', $id)->where('owned_by', auth('sanctum')->id())->with('users')->first();
+
+        if (!$shop) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Shop not found',
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'shop' => $shop,
+        ], 200);
     }
 
     /**
